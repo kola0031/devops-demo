@@ -1,6 +1,6 @@
 <?php
 // Load Config
-$config = parse_ini_file('config.ini');
+$config = parse_ini_file('config-template.ini');
 
 // Declare Variables
 $dbSuccess = false;
