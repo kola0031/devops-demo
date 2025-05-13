@@ -18,7 +18,7 @@ module "rds" {
   source      = "./modules/rds"
   vpc_id      = module.vpc.vpc_id
   subnet_ids  = module.vpc.private_subnet_ids
-  db_password = "your-db-password" # Replace with the actual database password
+  db_password = var.db_password # Replace with the actual database password
 }
 
 module "alb" {
