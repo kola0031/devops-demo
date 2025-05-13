@@ -29,7 +29,6 @@ module "alb" {
 
 module "ecr" {
   source          = "./modules/ecr"
-  iam_role        = var.iam_role          # Replace with the actual IAM role
   repository_name = var.repository_name   # Replace with the actual repository name
 }
 
