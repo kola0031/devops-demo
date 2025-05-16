@@ -2,29 +2,32 @@ version: '3.8'
 
 services:
   web:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: devops-web
     ports:
       - "8080:80"
     environment:
-      - ENVNAME=Dev
-      - DB_HOST=db
-      - DB_NAME=devopsdb
-      - DB_USER=root
-      - DB_PASS=password
-    depends_on:
-      - db
+      - ENVNAME=${ENV_NAME:-Dev}
+      - DB_HOST=${RDS_ENDPOINT}
+      - DB_NAME=${DB_NAME:-devopsdb}
+      - DB_USER=${DB_USER:-admin}
+      - DB_PASS=${DB_PASS}
+      - DB_PORT=${DB_PORT:-3306}
     volumes:
-      - ./webapp:/var/www/html
+      - ./webapp:/var/www/html:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  db:
-    image: mysql:8.0
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: devopsdb
-    volumes:
-      - dbdata:/var/lib/mysql
-      - ./devops-demo.sql:/docker-entrypoint-initdb.d/devops-demo.sql
-
-volumes:
-  dbdata:
+networks:
+  app-network:
+    name: devops-demo-network
+    driver: bridge
