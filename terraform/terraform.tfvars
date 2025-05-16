@@ -41,10 +41,3 @@ module "rds" {
   environment         = var.env_name
   ecs_security_group_id = module.ecs.security_group_id
 }
-
-   "secrets": [
-     {
-       "name": "DB_PASS",
-       "valueFrom": "arn:aws:secretsmanager:us-east-2:AKIA5QZ4AB22HH3KHPWG:secret:rds!db-e9594068-378e-44e2-9817-00d83c9e6fe3:password::"
-     }
-   ]
