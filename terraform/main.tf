@@ -1,6 +1,6 @@
 terraform {
   required_version = ">= 1.0.0"
-  
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -9,9 +9,9 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "devops-demo-terraform-state-929449381556"
-    key    = "devops-demo/terraform.tfstate"
-    region = "us-east-1"
+    bucket  = "devops-demo-terraform-state-929449381556"
+    key     = "devops-demo/terraform.tfstate"
+    region  = "us-east-1"
     encrypt = true
   }
 }
@@ -21,8 +21,8 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "DevOps-Demo"
-      ManagedBy   = "Terraform"
+      Project   = "DevOps-Demo"
+      ManagedBy = "Terraform"
     }
   }
 }
@@ -34,7 +34,7 @@ module "vpc" {
 
 # Container Infrastructure
 module "ecr" {
-  source = "./modules/ecr"
+  source          = "./modules/ecr"
   repository_name = var.repository_name
 }
 
@@ -62,8 +62,8 @@ module "rds" {
 module "alb" {
   source = "./modules/alb"
 
-  vpc_id      = module.vpc.vpc_id
-  subnet_ids  = module.vpc.public_subnet_ids
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.public_subnet_ids
 }
 
 # Monitoring

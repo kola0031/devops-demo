@@ -17,7 +17,7 @@ db_username = "admin"
 # DO NOT store the password here. Use AWS Secrets Manager or pass it as an environment variable
 # Example: export TF_VAR_db_password="your-secure-password"
 db_password = ""
-db_host     = "rds-endpoint.amazonaws.com"  # Replace with the actual RDS endpoint
+db_host     = "rds-endpoint.amazonaws.com" # Replace with the actual RDS endpoint
 db_port     = 3306
 
 # ECR Repository Configuration
@@ -32,12 +32,12 @@ iam_role = "arn:aws:iam::123456789012:role/GitHubActionRole"
 
 module "rds" {
   source = "./modules/rds"
-  
-  vpc_id               = module.vpc.vpc_id
-  subnet_ids          = module.vpc.private_subnet_ids
-  db_name             = var.db_name
-  db_username         = var.db_username
-  db_password         = var.db_password
-  environment         = var.env_name
+
+  vpc_id                = module.vpc.vpc_id
+  subnet_ids            = module.vpc.private_subnet_ids
+  db_name               = var.db_name
+  db_username           = var.db_username
+  db_password           = var.db_password
+  environment           = var.env_name
   ecs_security_group_id = module.ecs.security_group_id
 }
