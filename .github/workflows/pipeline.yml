@@ -1,0 +1,186 @@
+name: 'Complete DevOps Pipeline'
+
+on:
+  workflow_dispatch:  # Manual trigger
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECS_CLUSTER: devops-demo-cluster
+  ECS_SERVICE: devops-demo-service
+  CONTAINER_NAME: devops-web
+
+jobs:
+  deploy:
+    name: 'Deploy Infrastructure and Application'
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: ./terraform
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "1.7.0"
+
+    - name: Terraform Format
+      run: terraform fmt -check
+
+    - name: Terraform Init
+      run: terraform init
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Terraform Plan
+      run: terraform plan
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+        TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+      if: github.event_name == 'pull_request'
+
+    - name: Terraform Apply
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      run: terraform apply -auto-approve
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+        TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+
+    - name: Get RDS Environment Variables
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      run: |
+        echo "RDS_ENDPOINT=$(terraform output -raw db_endpoint)" >> $GITHUB_ENV
+        echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
+
+    # Application Deployment Steps
+    - name: Login to Amazon ECR
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Get ECR Repository
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      working-directory: ../
+      run: |
+        ECR_REPO=$(aws ecr describe-repositories --repository-names devops-demo --query 'repositories[0].repositoryUri' --output text)
+        echo "ECR_REPO=$ECR_REPO" >> $GITHUB_ENV
+
+    - name: Build, tag, and push image to ECR
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      working-directory: ../
+      run: |
+        IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)
+        IMAGE_URI=${{ env.ECR_REPO }}:$IMAGE_TAG
+        docker build -t $IMAGE_URI .
+        docker push $IMAGE_URI
+        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+    - name: Create ECS task definition
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      working-directory: ../
+      run: |
+        cat << EOF > task-definition.json
+        {
+          "family": "devops-demo-task",
+          "networkMode": "awsvpc",
+          "requiresCompatibilities": ["FARGATE"],
+          "cpu": "256",
+          "memory": "512",
+          "containerDefinitions": [
+            {
+              "name": "${{ env.CONTAINER_NAME }}",
+              "image": "${{ env.IMAGE_URI }}",
+              "essential": true,
+              "portMappings": [
+                {
+                  "containerPort": 80,
+                  "protocol": "tcp"
+                }
+              ],
+              "environment": [
+                {
+                  "name": "DB_HOST",
+                  "value": "${{ env.RDS_ENDPOINT }}"
+                },
+                {
+                  "name": "DB_NAME",
+                  "value": "${{ env.DB_NAME }}"
+                },
+                {
+                  "name": "DB_USER",
+                  "value": "${{ secrets.DB_USERNAME }}"
+                },
+                {
+                  "name": "ENV_NAME",
+                  "value": "Prod"
+                }
+              ],
+              "secrets": [
+                {
+                  "name": "DB_PASS",
+                  "valueFrom": "${{ secrets.DB_PASSWORD_ARN }}"
+                }
+              ],
+              "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                  "awslogs-group": "/ecs/devops-demo",
+                  "awslogs-region": "${{ env.AWS_REGION }}",
+                  "awslogs-stream-prefix": "ecs"
+                }
+              }
+            }
+          ]
+        }
+        EOF
+
+    - name: Register new task definition
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      working-directory: ../
+      run: |
+        TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://task-definition.json --query 'taskDefinition.taskDefinitionArn' --output text)
+        echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
+
+    - name: Update ECS service
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      working-directory: ../
+      run: |
+        aws ecs update-service \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --service ${{ env.ECS_SERVICE }} \
+          --task-definition ${{ env.TASK_DEF_ARN }} \
+          --force-new-deployment
+
+    - name: Wait for service stability
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      working-directory: ../
+      run: |
+        aws ecs wait services-stable \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --services ${{ env.ECS_SERVICE }} 
