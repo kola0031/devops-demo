@@ -132,3 +132,14 @@ variable "memory_threshold" {
     error_message = "Memory threshold must be between 1 and 100 percent."
   }
 }
+
+variable "environment" {
+  description = "Environment name (e.g., Dev, Staging, Prod)"
+  type        = string
+  default     = "Dev"
+
+  validation {
+    condition     = contains(["Dev", "Staging", "Prod"], var.environment)
+    error_message = "Environment must be either Dev, Staging, or Prod."
+  }
+}

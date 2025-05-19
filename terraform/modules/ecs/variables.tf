@@ -11,7 +11,7 @@ variable "security_group_id" {
 }
 
 variable "image_url" {
-  type = string
+  type        = string
   description = "ECR image URL for the app"
 }
 
