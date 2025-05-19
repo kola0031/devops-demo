@@ -20,6 +20,7 @@ env:
   ECS_CLUSTER: devops-demo-cluster
   ECS_SERVICE: devops-demo-service
   CONTAINER_NAME: devops-web
+  TF_WORKSPACE: default
 
 jobs:
   deploy:
@@ -44,36 +45,52 @@ jobs:
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: "1.0.0"
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
     - name: Terraform Format
       run: terraform fmt -check 
 
     - name: Terraform Init
       run: |
-        terraform init -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
-                      -backend-config="key=${{ secrets.TF_STATE_KEY }}" \
-                      -backend-config="region=${{ secrets.AWS_REGION }}"
+        terraform init \
+          -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+          -backend-config="key=${{ secrets.TF_STATE_KEY }}" \
+          -backend-config="region=${{ env.AWS_REGION }}" \
+          -plugin-dir="${{ github.workspace }}/.terraform/plugins" \
+          -get=true \
+          -upgrade
       env:
+        TF_LOG: DEBUG
+        TF_INPUT: false
+        TF_IN_AUTOMATION: true
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+        AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
 
     - name: Terraform Plan
-      run: terraform plan
+      run: terraform plan -out=tfplan
       env:
+        TF_LOG: DEBUG
+        TF_INPUT: false
+        TF_IN_AUTOMATION: true
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
         TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
       if: github.event_name == 'pull_request'
 
     - name: Terraform Apply
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-      run: terraform apply -auto-approve
+      run: terraform apply -auto-approve tfplan
       env:
+        TF_LOG: DEBUG
+        TF_INPUT: false
+        TF_IN_AUTOMATION: true
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+        AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
         TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
