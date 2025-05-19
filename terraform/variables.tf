@@ -10,6 +10,19 @@ variable "aws_region" {
   }
 }
 
+# AWS Credentials
+variable "aws_access_key" {
+  description = "AWS access key"
+  type        = string
+  sensitive   = true
+}
+
+variable "aws_secret_key" {
+  description = "AWS secret key"
+  type        = string
+  sensitive   = true
+}
+
 # Docker image URL for ECS app
 variable "image_url" {
   description = "Full ECR Docker image URL for ECS Fargate service"
