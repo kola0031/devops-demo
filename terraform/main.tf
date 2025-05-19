@@ -3,9 +3,8 @@ terraform {
 
   required_providers {
     aws = {
-      source    = "hashicorp/aws"
-      version   = "~> 5.0"
-      platforms = ["darwin_arm64"]
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
 
