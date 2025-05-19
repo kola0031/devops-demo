@@ -1,5 +1,14 @@
-resource "aws_ecs_cluster" "main" {
+resource "aws_ecs_cluster" "this" {
   name = "devops-demo-cluster"
+
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+
+  tags = {
+    Name = "devops-demo-cluster"
+  }
 }
 
 resource "aws_iam_role" "ecs_task_execution_role" {
@@ -78,7 +87,7 @@ resource "aws_ecs_task_definition" "php_app" {
 
 resource "aws_ecs_service" "php_service" {
   name            = "devops-demo-service"
-  cluster         = aws_ecs_cluster.main.id
+  cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.php_app.arn
   launch_type     = "FARGATE"
   desired_count   = 2
@@ -92,4 +101,28 @@ resource "aws_ecs_service" "php_service" {
   depends_on = [
     aws_iam_role_policy_attachment.ecs_execution_policy
   ]
+}
+
+resource "aws_security_group" "ecs_tasks" {
+  name        = "ecs-tasks-sg"
+  description = "Security group for ECS tasks"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [var.security_group_id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "ecs-tasks-sg"
+  }
 }
