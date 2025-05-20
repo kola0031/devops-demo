@@ -56,11 +56,30 @@ jobs:
     - name: Get DB Password from Secrets Manager
       id: get-secret
       run: |
+        # Get the secret
         SECRET_JSON=$(aws secretsmanager get-secret-value \
           --secret-id ${{ secrets.DB_PASSWORD_ARN }} \
           --query SecretString \
           --output text)
-        DB_PASSWORD=$(echo "$SECRET_JSON" | jq -r '.password')
+        
+        # Debug: Print the secret format (masked)
+        echo "::add-mask::$SECRET_JSON"
+        echo "Secret format: $SECRET_JSON"
+        
+        # Extract password from JSON
+        if echo "$SECRET_JSON" | jq -e . >/dev/null 2>&1; then
+          DB_PASSWORD=$(echo "$SECRET_JSON" | jq -r '.password')
+        else
+          # If not JSON, use the secret as is
+          DB_PASSWORD="$SECRET_JSON"
+        fi
+        
+        # Debug: Print password requirements
+        echo "Password length: ${#DB_PASSWORD}"
+        echo "Contains uppercase: $([[ "$DB_PASSWORD" =~ [A-Z] ]] && echo "yes" || echo "no")"
+        echo "Contains lowercase: $([[ "$DB_PASSWORD" =~ [a-z] ]] && echo "yes" || echo "no")"
+        echo "Contains numbers: $([[ "$DB_PASSWORD" =~ [0-9] ]] && echo "yes" || echo "no")"
+        echo "Contains special: $([[ "$DB_PASSWORD" =~ [^A-Za-z0-9] ]] && echo "yes" || echo "no")"
         
         # Validate password format
         if ! [[ "$DB_PASSWORD" =~ [A-Z] ]] || \
@@ -69,6 +88,12 @@ jobs:
            ! [[ "$DB_PASSWORD" =~ [^A-Za-z0-9] ]] || \
            [ ${#DB_PASSWORD} -lt 8 ]; then
           echo "Error: Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters"
+          echo "Current password format:"
+          echo "- Length: ${#DB_PASSWORD}"
+          echo "- Has uppercase: $([[ "$DB_PASSWORD" =~ [A-Z] ]] && echo "yes" || echo "no")"
+          echo "- Has lowercase: $([[ "$DB_PASSWORD" =~ [a-z] ]] && echo "yes" || echo "no")"
+          echo "- Has numbers: $([[ "$DB_PASSWORD" =~ [0-9] ]] && echo "yes" || echo "no")"
+          echo "- Has special: $([[ "$DB_PASSWORD" =~ [^A-Za-z0-9] ]] && echo "yes" || echo "no")"
           exit 1
         fi
         
