@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_ecs_cluster" "this" {
   name = "devops-demo-cluster"
 
@@ -44,7 +46,7 @@ resource "aws_iam_role_policy" "secrets_manager_policy" {
           "secretsmanager:GetSecretValue"
         ],
         Resource = [
-          "arn:aws:secretsmanager:${var.aws_region}:*:secret:*"
+          "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:*"
         ]
       }
     ]
@@ -61,54 +63,34 @@ resource "aws_ecs_task_definition" "php_app" {
 
   container_definitions = jsonencode([
     {
-      name      = var.container_name
+      name      = "php-app"
       image     = var.image_url
       essential = true
       portMappings = [
         {
           containerPort = 80
           hostPort      = 80
-          protocol      = "tcp"
         }
       ],
       environment = [
-        {
-          name  = "DB_HOST"
-          value = var.db_host
-        },
-        {
-          name  = "DB_NAME"
-          value = var.db_name
-        },
-        {
-          name  = "DB_USER"
-          value = var.db_username
-        },
-        {
-          name  = "ENV_NAME"
-          value = var.env_name
-        }
+        { name = "ENVNAME", value = "Production" }
       ],
       secrets = [
         {
-          name      = "DB_PASS"
+          name      = "DB_PASSWORD"
           valueFrom = var.db_password_arn
         }
       ],
       logConfiguration = {
-        logDriver = "awslogs"
+        logDriver = "awslogs",
         options = {
-          "awslogs-group"         = "/ecs/devops-demo"
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
+          awslogs-group         = "/ecs/devops-demo"
+          awslogs-region        = var.aws_region
+          awslogs-stream-prefix = "ecs"
         }
       }
     }
   ])
-
-  tags = {
-    Name = "devops-demo-task"
-  }
 }
 
 resource "aws_ecs_service" "php_service" {
@@ -121,11 +103,12 @@ resource "aws_ecs_service" "php_service" {
   network_configuration {
     subnets          = var.subnet_ids
     assign_public_ip = false
-    security_groups  = [var.security_group_id]
+    security_groups  = [aws_security_group.ecs_tasks.id]
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.ecs_execution_policy
+    aws_iam_role_policy_attachment.ecs_execution_policy,
+    aws_iam_role_policy.secrets_manager_policy
   ]
 }
 
@@ -138,7 +121,7 @@ resource "aws_security_group" "ecs_tasks" {
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
-    security_groups = [var.security_group_id]
+    security_groups = [aws_security_group.ecs_tasks.id] # Allow from itself (or modify per your LB/SG)
   }
 
   egress {
