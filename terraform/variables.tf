@@ -38,7 +38,7 @@ variable "image_url" {
 variable "security_group_id" {
   description = "Security group ID to attach to ECS service"
   type        = string
-
+  default     = ""
   validation {
     condition     = can(regex("^sg-[a-f0-9]{17}$", var.security_group_id))
     error_message = "Security group ID must be valid (e.g., sg-xxxxxxxxxxxxxxxxx)."
