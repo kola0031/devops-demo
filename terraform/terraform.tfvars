@@ -14,8 +14,7 @@ security_group_id = ""
 # RDS Configuration
 db_name     = "devopsdb"
 db_username = "admin"
-# DO NOT store the password here. Use AWS Secrets Manager or pass it as an environment variable
-# Example: export TF_VAR_db_password="your-secure-password"
+# Password will be provided via environment variable TF_VAR_db_password
 db_password = ""
 db_host     = "devopsdb.cd6eq8000qil.us-east-1.rds.amazonaws.com" # Replace with the actual RDS endpoint
 db_port     = 3306
