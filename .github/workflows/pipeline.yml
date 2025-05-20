@@ -185,6 +185,7 @@ jobs:
 
     - name: Build, tag, and push image to ECR
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      working-directory: ${{ github.workspace }}
       run: |
         IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)
         IMAGE_URI=${{ env.ECR_REPO }}:$IMAGE_TAG
