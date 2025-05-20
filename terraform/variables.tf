@@ -159,3 +159,8 @@ variable "environment" {
     error_message = "Environment must be either Dev, Staging, or Prod."
   }
 }
+
+variable "db_password_arn" {
+  description = "ARN of the secret containing the database password"
+  type        = string
+}

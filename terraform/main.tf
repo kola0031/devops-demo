@@ -47,6 +47,13 @@ module "ecs" {
   subnet_ids        = module.vpc.private_subnet_ids
   image_url         = var.image_url
   security_group_id = module.vpc.ecs_security_group_id
+  aws_region        = var.aws_region
+  db_host           = module.rds.db_endpoint
+  db_name           = var.db_name
+  db_username       = var.db_username
+  db_password_arn   = var.db_password_arn
+  env_name          = var.env_name
+  container_name    = "devops-web"
 }
 
 # Database Infrastructure
