@@ -44,12 +44,12 @@ jobs:
     - name: Get DB Password from Secrets Manager
       id: get-secret
       run: |
-        DB_PASSWORD=$(aws secretsmanager get-secret-value \
+        DB_PASSWORD_ARN=$(aws secretsmanager get-secret-value \
           --secret-id ${{ secrets.DB_PASSWORD_ARN }} \
           --query SecretString \
           --output text)
-        echo "::add-mask::$DB_PASSWORD"
-        echo "TF_VAR_db_password=$DB_PASSWORD" >> $GITHUB_ENV
+        echo "::add-mask::$DB_PASSWORD_ARN"
+        echo "TF_VAR_db_password=$DB_PASSWORD_ARN" >> $GITHUB_ENV
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
