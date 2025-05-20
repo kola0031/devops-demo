@@ -121,7 +121,7 @@ resource "aws_security_group" "ecs_tasks" {
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
-    security_groups = [self.id] # Allow from itself (or modify per your LB/SG)
+    security_groups = [var.alb_security_group_id] # Allow from itself (or modify per your LB/SG)
   }
 
   egress {
