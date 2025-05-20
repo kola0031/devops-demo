@@ -53,12 +53,12 @@ module "ecs" {
 module "rds" {
   source = "./modules/rds"
 
-  vpc_id               = module.vpc.vpc_id
-  subnet_ids           = module.vpc.private_subnet_ids
-  db_name             = var.db_name
-  db_username         = var.db_username
-  db_password         = var.db_password
-  environment         = var.environment
+  vpc_id                = module.vpc.vpc_id
+  subnet_ids            = module.vpc.private_subnet_ids
+  db_name               = var.db_name
+  db_username           = var.db_username
+  db_password           = var.db_password
+  environment           = var.environment
   ecs_security_group_id = module.ecs.security_group_id
 }
 
