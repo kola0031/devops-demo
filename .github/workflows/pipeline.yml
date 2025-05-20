@@ -197,15 +197,13 @@ jobs:
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
       working-directory: ${{ github.workspace }}
       run: |
-        # Get the task execution role ARN
-        TASK_EXECUTION_ROLE_ARN=$(aws ecs describe-task-definition \
-          --task-definition devops-demo-task \
-          --query 'taskDefinition.executionRoleArn' \
-          --output text || echo "")
+        # Extract AWS account ID from ECR repository URL
+        AWS_ACCOUNT_ID=$(echo ${{ env.ECR_REPO }} | cut -d'.' -f1)
         
-        if [ -z "$TASK_EXECUTION_ROLE_ARN" ]; then
-          TASK_EXECUTION_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole"
-        fi
+        # Get the task execution role ARN
+        TASK_EXECUTION_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole"
+        
+        echo "Using execution role ARN: ${TASK_EXECUTION_ROLE_ARN}"
 
         cat << EOF > task-definition.json
         {
