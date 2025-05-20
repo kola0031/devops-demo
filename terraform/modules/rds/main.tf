@@ -40,7 +40,7 @@ resource "aws_security_group_rule" "rds_outbound" {
 }
 
 resource "aws_db_instance" "mysql" {
-  identifier                = "devops-demo-db-${var.environment}"
+  identifier                = "devops-demo-db-${lower(var.environment)}"
   engine                    = "mysql"
   engine_version            = "8.0"
   instance_class            = "db.t3.micro"
