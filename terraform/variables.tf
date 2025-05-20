@@ -73,10 +73,7 @@ variable "db_password" {
   type        = string
   sensitive   = true
 
-  validation {
-    condition     = length(var.db_password) >= 8
-    error_message = "Database password must be at least 8 characters long."
-  }
+  
 }
 
 variable "db_host" {
