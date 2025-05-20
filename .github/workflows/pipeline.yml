@@ -41,13 +41,26 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
+    - name: Install jq
+      run: |
+        if command -v jq &> /dev/null; then
+          echo "jq is already installed"
+        else
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install jq
+          else
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+        fi
+
     - name: Get DB Password from Secrets Manager
       id: get-secret
       run: |
-        DB_PASSWORD=$(aws secretsmanager get-secret-value \
+        SECRET_JSON=$(aws secretsmanager get-secret-value \
           --secret-id ${{ secrets.DB_PASSWORD_ARN }} \
           --query SecretString \
           --output text)
+        DB_PASSWORD=$(echo "$SECRET_JSON" | jq -r '.password')
         echo "::add-mask::$DB_PASSWORD"
         echo "TF_VAR_db_password=$DB_PASSWORD" >> $GITHUB_ENV
 
