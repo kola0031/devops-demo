@@ -63,6 +63,7 @@ jobs:
         DB_PASSWORD=$(echo "$SECRET_JSON" | jq -r '.password')
         echo "::add-mask::$DB_PASSWORD"
         echo "TF_VAR_db_password=$DB_PASSWORD" >> $GITHUB_ENV
+        echo $TF_VAR_db_password
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
