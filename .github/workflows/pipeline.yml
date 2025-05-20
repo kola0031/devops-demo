@@ -195,8 +195,18 @@ jobs:
 
     - name: Create ECS task definition
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-      working-directory: ../
+      working-directory: ${{ github.workspace }}
       run: |
+        # Get the task execution role ARN
+        TASK_EXECUTION_ROLE_ARN=$(aws ecs describe-task-definition \
+          --task-definition devops-demo-task \
+          --query 'taskDefinition.executionRoleArn' \
+          --output text || echo "")
+        
+        if [ -z "$TASK_EXECUTION_ROLE_ARN" ]; then
+          TASK_EXECUTION_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole"
+        fi
+
         cat << EOF > task-definition.json
         {
           "family": "devops-demo-task",
@@ -204,6 +214,7 @@ jobs:
           "requiresCompatibilities": ["FARGATE"],
           "cpu": "256",
           "memory": "512",
+          "executionRoleArn": "${TASK_EXECUTION_ROLE_ARN}",
           "containerDefinitions": [
             {
               "name": "${{ env.CONTAINER_NAME }}",
