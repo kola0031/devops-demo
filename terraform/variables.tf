@@ -65,11 +65,21 @@ variable "db_username" {
 }
 
 variable "db_password" {
-  description = "Password for the RDS database. Must be at least 8 characters long and contain letters, numbers, and symbols."
+  description = "Password for the RDS database. Must contain at least 8 characters and include uppercase, lowercase, numbers, and special characters."
   type        = string
   sensitive   = true
+  default     = null
 
-
+  validation {
+    condition     = var.db_password == null || (
+      length(var.db_password) >= 8 &&
+      can(regex("[A-Z]", var.db_password)) &&
+      can(regex("[a-z]", var.db_password)) &&
+      can(regex("[0-9]", var.db_password)) &&
+      can(regex("[^A-Za-z0-9]", var.db_password))
+    )
+    error_message = "Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters."
+  }
 }
 
 variable "db_host" {

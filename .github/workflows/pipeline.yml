@@ -61,6 +61,17 @@ jobs:
           --query SecretString \
           --output text)
         DB_PASSWORD=$(echo "$SECRET_JSON" | jq -r '.password')
+        
+        # Validate password format
+        if ! [[ "$DB_PASSWORD" =~ [A-Z] ]] || \
+           ! [[ "$DB_PASSWORD" =~ [a-z] ]] || \
+           ! [[ "$DB_PASSWORD" =~ [0-9] ]] || \
+           ! [[ "$DB_PASSWORD" =~ [^A-Za-z0-9] ]] || \
+           [ ${#DB_PASSWORD} -lt 8 ]; then
+          echo "Error: Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters"
+          exit 1
+        fi
+        
         echo "::add-mask::$DB_PASSWORD"
         echo "TF_VAR_db_password=$DB_PASSWORD" >> $GITHUB_ENV
         echo $TF_VAR_db_password
