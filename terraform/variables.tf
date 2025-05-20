@@ -166,5 +166,5 @@ variable "db_password_arn" {
 }
 
 variable "vpc_id" {
-  
+
 }
