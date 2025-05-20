@@ -166,5 +166,11 @@ variable "db_password_arn" {
 }
 
 variable "vpc_id" {
+  description = "The ID of the VPC where resources will be created"
+  type        = string
 
+  validation {
+    condition     = can(regex("^vpc-[a-z0-9]+$", var.vpc_id))
+    error_message = "VPC ID must be a valid AWS VPC ID (e.g., vpc-12345678)."
+  }
 }
