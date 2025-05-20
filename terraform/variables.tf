@@ -164,3 +164,7 @@ variable "db_password_arn" {
   description = "ARN of the secret containing the database password"
   type        = string
 }
+
+variable "vpc_id" {
+  
+}
