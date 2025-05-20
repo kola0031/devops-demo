@@ -43,17 +43,18 @@ module "ecr" {
 module "ecs" {
   source = "./modules/ecs"
 
-  vpc_id            = module.vpc.vpc_id
-  subnet_ids        = module.vpc.private_subnet_ids
-  image_url         = var.image_url
-  security_group_id = module.vpc.ecs_security_group_id
-  aws_region        = var.aws_region
-  db_host           = var.db_host
-  db_name           = var.db_name
-  db_username       = var.db_username
-  db_password_arn   = var.db_password_arn
-  env_name          = var.env_name
-  container_name    = "devops-web"
+  vpc_id                = module.vpc.vpc_id
+  subnet_ids            = module.vpc.private_subnet_ids
+  image_url             = var.image_url
+  security_group_id     = module.vpc.ecs_security_group_id
+  aws_region            = var.aws_region
+  db_host               = var.db_host
+  db_name               = var.db_name
+  db_username           = var.db_username
+  db_password_arn       = var.db_password_arn
+  env_name              = var.env_name
+  container_name        = "devops-web"
+  alb_security_group_id = aws_security_group.alb_sg.id
 }
 
 # Database Infrastructure

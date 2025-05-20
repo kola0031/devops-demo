@@ -54,3 +54,8 @@ variable "env_name" {
   type        = string
   default     = "Dev"
 }
+
+variable "alb_security_group_id" {
+  description = "The security group ID of the ALB that should be allowed to access ECS tasks"
+  type        = string
+}
