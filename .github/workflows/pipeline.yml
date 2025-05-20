@@ -158,8 +158,17 @@ jobs:
     - name: Get RDS Environment Variables
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
       run: |
-        echo "RDS_ENDPOINT=$(terraform output -raw db_endpoint)" >> $GITHUB_ENV
-        echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
+        # Get RDS endpoint and remove any newlines
+        RDS_ENDPOINT=$(terraform output -raw db_endpoint | tr -d '\n')
+        DB_NAME=$(terraform output -raw db_name | tr -d '\n')
+        
+        # Set environment variables
+        echo "RDS_ENDPOINT=${RDS_ENDPOINT}" >> $GITHUB_ENV
+        echo "DB_NAME=${DB_NAME}" >> $GITHUB_ENV
+        
+        # Debug output (masked)
+        echo "::add-mask::$RDS_ENDPOINT"
+        echo "::add-mask::$DB_NAME"
 
     # Application Deployment Steps
     - name: Login to Amazon ECR
