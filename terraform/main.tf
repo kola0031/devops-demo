@@ -48,7 +48,7 @@ module "ecs" {
   image_url         = var.image_url
   security_group_id = module.vpc.ecs_security_group_id
   aws_region        = var.aws_region
-  db_host           = module.rds.db_endpoint
+  db_host           = var.db_host
   db_name           = var.db_name
   db_username       = var.db_username
   db_password_arn   = var.db_password_arn
@@ -66,7 +66,7 @@ module "rds" {
   db_username           = var.db_username
   db_password           = var.db_password
   environment           = var.environment
-  ecs_security_group_id = module.ecs.security_group_id
+  ecs_security_group_id = module.vpc.ecs_security_group_id
 }
 
 # Load Balancer

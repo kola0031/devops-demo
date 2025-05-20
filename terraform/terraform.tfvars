@@ -14,6 +14,9 @@ db_username = "admin"
 db_host = "devopsdb.cd6eq8000qil.us-east-1.rds.amazonaws.com" # Replace with the actual RDS endpoint
 db_port = 3306
 
+# Secrets Manager ARN for database password
+db_password_arn = "arn:aws:secretsmanager:us-east-1:929449381556:secret:rds!db-e9594068-378e-44e2-9817-00d83c9e6fe3-*"
+
 # ECR Repository Configuration
 repository_name = "devops-demo"
 
