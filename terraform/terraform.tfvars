@@ -7,9 +7,6 @@ env_name = "Dev"
 # Docker image URL from ECR (update with your account ID and image version)
 image_url = "929449381556.dkr.ecr.us-east-1.amazonaws.com/devops-demo:latest"
 
-# Security group ID for ECS service
-security_group_id = "sg-05572254014a740c5"
-
 # RDS Configuration
 db_name     = "devopsdb"
 db_username = "admin"
