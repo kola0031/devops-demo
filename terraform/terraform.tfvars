@@ -11,8 +11,8 @@ image_url = "929449381556.dkr.ecr.us-east-1.amazonaws.com/devops-demo:latest"
 db_name     = "devopsdb"
 db_username = "admin"
 # Password will be provided via environment variable TF_VAR_db_password
-db_host     = "devopsdb.cd6eq8000qil.us-east-1.rds.amazonaws.com" # Replace with the actual RDS endpoint
-db_port     = 3306
+db_host = "devopsdb.cd6eq8000qil.us-east-1.rds.amazonaws.com" # Replace with the actual RDS endpoint
+db_port = 3306
 
 # ECR Repository Configuration
 repository_name = "devops-demo"
