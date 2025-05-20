@@ -71,7 +71,7 @@ variable "db_password" {
   default     = null
 
   validation {
-    condition     = var.db_password == null || (
+    condition = var.db_password == null || (
       length(var.db_password) >= 8 &&
       can(regex("[A-Z]", var.db_password)) &&
       can(regex("[a-z]", var.db_password)) &&
