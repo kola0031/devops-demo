@@ -44,7 +44,7 @@ resource "aws_iam_role_policy" "secrets_manager_policy" {
           "secretsmanager:GetSecretValue"
         ],
         Resource = [
-          "arn:aws:secretsmanager:us-east-1:AKIA5QZ4AB22HH3KHPWG:secret:rds!db-e9594068-378e-44e2-9817-00d83c9e6fe3-*"
+          "arn:aws:secretsmanager:${var.aws_region}:*:secret:*"
         ]
       }
     ]
