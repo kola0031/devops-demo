@@ -1,6 +1,7 @@
 {
   "family": "devops-demo-task",
   "executionRoleArn": "arn:aws:iam::929449381556:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::929449381556:role/ecsTaskExecutionRole",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "256",
@@ -8,7 +9,7 @@
   "containerDefinitions": [
     {
       "name": "devops-web",
-      "image": "929449381556.dkr.ecr.us-east-1.amazonaws.com/devops-demo:d5a1db9",
+      "image": "929449381556.dkr.ecr.us-east-1.amazonaws.com/devops-demo:319b548",
       "essential": true,
       "portMappings": [
         {

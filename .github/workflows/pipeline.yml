@@ -110,6 +110,9 @@ jobs:
     - name: Terraform Format
       run: terraform fmt -check 
 
+    - name: Terraform Validate
+      run: terraform validate
+
     - name: Terraform Init
       run: |
         terraform init \
@@ -203,8 +206,15 @@ jobs:
         # Get the task execution role ARN
         TASK_EXECUTION_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole"
         
+        # Verify the role exists
+        if ! aws iam get-role --role-name ecsTaskExecutionRole &>/dev/null; then
+          echo "Error: Task execution role does not exist"
+          exit 1
+        fi
+        
         echo "Using execution role ARN: ${TASK_EXECUTION_ROLE_ARN}"
 
+        # Create task definition with health check
         cat << EOF > task-definition.json
         {
           "family": "devops-demo-task",
@@ -248,6 +258,13 @@ jobs:
                   "valueFrom": "${{ secrets.DB_PASSWORD_ARN }}"
                 }
               ],
+              "healthCheck": {
+                "command": ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"],
+                "interval": 30,
+                "timeout": 5,
+                "retries": 3,
+                "startPeriod": 60
+              },
               "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -260,6 +277,12 @@ jobs:
           ]
         }
         EOF
+        
+        # Validate JSON format
+        if ! jq . task-definition.json > /dev/null 2>&1; then
+          echo "Error: Invalid JSON in task definition"
+          exit 1
+        fi
 
     - name: Register new task definition
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
