@@ -54,7 +54,7 @@ module "ecs" {
   db_password_arn       = var.db_password_arn
   env_name              = var.env_name
   container_name        = "devops-web"
-  alb_security_group_id = aws_security_group.alb_sg.id
+  alb_security_group_id = module.alb.alb_security_group_id
 }
 
 # Database Infrastructure
@@ -86,27 +86,4 @@ module "cloudwatch" {
   ecs_service_name = module.ecs.service_name
   cpu_threshold    = var.cpu_threshold
   memory_threshold = var.memory_threshold
-}
-resource "aws_security_group" "alb_sg" {
-  name        = "alb-sg"
-  description = "Security group for the ALB"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Or use your VPC CIDR or another SG
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "alb-sg"
-  }
 }
