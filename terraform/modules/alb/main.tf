@@ -1,5 +1,5 @@
 resource "aws_security_group" "alb_sg" {
-  name        = "alb-sg"
+  name        = "alb-sg-${formatdate("YYYYMMDDHHmmss", timestamp())}"
   description = "Allow HTTP access to ALB"
   vpc_id      = var.vpc_id
 
