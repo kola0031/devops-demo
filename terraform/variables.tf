@@ -164,13 +164,3 @@ variable "db_password_arn" {
   description = "ARN of the secret containing the database password"
   type        = string
 }
-
-variable "vpc_id" {
-  description = "The ID of the VPC where resources will be created"
-  type        = string
-
-  validation {
-    condition     = can(regex("^vpc-[a-z0-9]+$", var.vpc_id))
-    error_message = "VPC ID must be a valid AWS VPC ID (e.g., vpc-12345678)."
-  }
-}

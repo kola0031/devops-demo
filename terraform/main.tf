@@ -90,7 +90,7 @@ module "cloudwatch" {
 resource "aws_security_group" "alb_sg" {
   name        = "alb-sg"
   description = "Security group for the ALB"
-  vpc_id      = var.vpc_id
+  vpc_id      = module.vpc.vpc_id
 
   ingress {
     from_port   = 80
