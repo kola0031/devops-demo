@@ -99,12 +99,13 @@ variable "db_port" {
 }
 
 # Environment name
-variable "env_name" {
+variable "environment" {
   description = "Environment name (e.g., Dev, Staging, Prod)"
   type        = string
+  default     = "Dev"
 
   validation {
-    condition     = contains(["Dev", "Staging", "Prod"], var.env_name)
+    condition     = contains(["Dev", "Staging", "Prod"], var.environment)
     error_message = "Environment must be either Dev, Staging, or Prod."
   }
 }
@@ -149,28 +150,8 @@ variable "memory_threshold" {
   }
 }
 
-variable "environment" {
-  description = "Environment name (e.g., Dev, Staging, Prod)"
-  type        = string
-  default     = "Dev"
-
-  validation {
-    condition     = contains(["Dev", "Staging", "Prod"], var.environment)
-    error_message = "Environment must be either Dev, Staging, or Prod."
-  }
-}
-
 variable "db_password_arn" {
   description = "ARN of the secret containing the database password"
   type        = string
 }
 
-variable "vpc_id" {
-  description = "The ID of the VPC where resources will be created"
-  type        = string
-
-  validation {
-    condition     = can(regex("^vpc-[a-z0-9]+$", var.vpc_id))
-    error_message = "VPC ID must be a valid AWS VPC ID (e.g., vpc-12345678)."
-  }
-}
