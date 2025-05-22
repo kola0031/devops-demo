@@ -39,7 +39,7 @@
       "secrets": [
         {
           "name": "DB_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:929449381556:secret:db-password"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:929449381556:secret:devops-demo-db-credentials-3tUXp0"
         }
       ],
       "healthCheck": {
