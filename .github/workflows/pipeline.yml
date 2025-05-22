@@ -110,8 +110,6 @@ jobs:
     - name: Terraform Format
       run: terraform fmt -check 
 
-   
-
     - name: Terraform Init
       run: |
         terraform init \
@@ -172,7 +170,6 @@ jobs:
         echo "::add-mask::$RDS_ENDPOINT"
         echo "::add-mask::$DB_NAME"
 
-    # Application Deployment Steps
     - name: Login to Amazon ECR
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
       id: login-ecr
@@ -201,16 +198,16 @@ jobs:
       run: |
         # Extract AWS account ID from ECR repository URL
         AWS_ACCOUNT_ID=$(echo ${{ env.ECR_REPO }} | cut -d'.' -f1)
-        
+
         # Get the task execution role ARN
         TASK_EXECUTION_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole"
-        
+
         # Verify the role exists
         if ! aws iam get-role --role-name ecsTaskExecutionRole &>/dev/null; then
           echo "Error: Task execution role does not exist"
           exit 1
         fi
-        
+
         echo "Using execution role ARN: ${TASK_EXECUTION_ROLE_ARN}"
 
         # Create task definition with health check
@@ -222,6 +219,7 @@ jobs:
           "cpu": "256",
           "memory": "512",
           "executionRoleArn": "${TASK_EXECUTION_ROLE_ARN}",
+          "taskRoleArn": "${TASK_EXECUTION_ROLE_ARN}",
           "containerDefinitions": [
             {
               "name": "${{ env.CONTAINER_NAME }}",
@@ -276,7 +274,7 @@ jobs:
           ]
         }
         EOF
-        
+
         # Validate JSON format
         if ! jq . task-definition.json > /dev/null 2>&1; then
           echo "Error: Invalid JSON in task definition"
