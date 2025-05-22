@@ -8,8 +8,8 @@
   "memory": "512",
   "containerDefinitions": [
     {
-      "name": "devops-web",
-      "image": "929449381556.dkr.ecr.us-east-1.amazonaws.com/devops-demo:319b548",
+      "name": "php-app",
+      "image": "929449381556.dkr.ecr.us-east-1.amazonaws.com/devops-demo:6c21522",
       "essential": true,
       "portMappings": [
         {
@@ -20,8 +20,20 @@
       ],
       "environment": [
         {
-          "name": "ENVNAME",
+          "name": "DB_NAME",
+          "value": "devops_demo"
+        },
+        {
+          "name": "ENV_NAME",
           "value": "Production"
+        },
+        {
+          "name": "DB_HOST",
+          "value": "devops-demo-db-dev.cqgqgqgqgqgq.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "name": "DB_USER",
+          "value": "admin"
         }
       ],
       "secrets": [
@@ -30,10 +42,18 @@
           "valueFrom": "arn:aws:secretsmanager:us-east-1:929449381556:secret:db-password"
         }
       ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      },
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/devops-demo",
+          "awslogs-group": "/ecs/devops-demo-task",
+          "awslogs-create-group": "true",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
