@@ -1,32 +1,26 @@
 variable "vpc_id" {
-  description = "VPC ID"
+  description = "VPC ID where the ECS cluster will be created"
   type        = string
 }
 
 variable "subnet_ids" {
-  description = "List of subnet IDs"
+  description = "List of subnet IDs where the ECS tasks will be launched"
   type        = list(string)
 }
 
-variable "security_group_id" {
-  description = "Security group ID"
+variable "image_url" {
+  description = "URL of the container image to use"
   type        = string
 }
 
-variable "image_url" {
-  description = "URL of the container image"
+variable "security_group_id" {
+  description = "Security group ID for the ECS tasks"
   type        = string
 }
 
 variable "aws_region" {
   description = "AWS region"
   type        = string
-}
-
-variable "container_name" {
-  description = "Name of the container"
-  type        = string
-  default     = "devops-web"
 }
 
 variable "db_host" {
@@ -45,17 +39,27 @@ variable "db_username" {
 }
 
 variable "db_password_arn" {
-  description = "ARN of the secret containing the database password"
+  description = "ARN of the database password secret"
   type        = string
 }
 
 variable "env_name" {
   description = "Environment name"
   type        = string
-  default     = "Dev"
+  default     = "Production"
+}
+
+variable "container_name" {
+  description = "Name of the container"
+  type        = string
 }
 
 variable "alb_security_group_id" {
-  description = "The security group ID of the ALB that should be allowed to access ECS tasks"
+  description = "Security group ID of the ALB"
+  type        = string
+}
+
+variable "target_group_arn" {
+  description = "ARN of the target group for the ECS service"
   type        = string
 }

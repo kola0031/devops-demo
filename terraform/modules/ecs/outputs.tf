@@ -20,7 +20,12 @@ output "service_name" {
   value       = aws_ecs_service.php_service.name
 }
 
-output "security_group_id" {
-  description = "ID of the ECS tasks security group"
+output "task_definition_arn" {
+  description = "ARN of the task definition"
+  value       = aws_ecs_task_definition.php_app.arn
+}
+
+output "ecs_security_group_id" {
+  description = "Security group ID for ECS tasks"
   value       = aws_security_group.ecs_tasks.id
 }

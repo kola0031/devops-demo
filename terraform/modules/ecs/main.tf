@@ -60,6 +60,7 @@ resource "aws_ecs_task_definition" "php_app" {
   cpu                      = "256"
   memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn           = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
     {
@@ -70,10 +71,14 @@ resource "aws_ecs_task_definition" "php_app" {
         {
           containerPort = 80
           hostPort      = 80
+          protocol      = "tcp"
         }
       ],
       environment = [
-        { name = "ENVNAME", value = "Production" }
+        { name = "DB_NAME", value = var.db_name },
+        { name = "ENV_NAME", value = var.env_name },
+        { name = "DB_HOST", value = var.db_host },
+        { name = "DB_USER", value = var.db_username }
       ],
       secrets = [
         {
@@ -81,12 +86,20 @@ resource "aws_ecs_task_definition" "php_app" {
           valueFrom = var.db_password_arn
         }
       ],
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 60
+      },
       logConfiguration = {
-        logDriver = "awslogs",
+        logDriver = "awslogs"
         options = {
-          awslogs-group         = "/ecs/devops-demo"
+          awslogs-group         = "/ecs/devops-demo-task"
           awslogs-region        = var.aws_region
           awslogs-stream-prefix = "ecs"
+          awslogs-create-group  = "true"
         }
       }
     }
@@ -104,6 +117,12 @@ resource "aws_ecs_service" "php_service" {
     subnets          = var.subnet_ids
     assign_public_ip = false
     security_groups  = [aws_security_group.ecs_tasks.id]
+  }
+
+  load_balancer {
+    target_group_arn = var.target_group_arn
+    container_name   = "php-app"
+    container_port   = 80
   }
 
   depends_on = [

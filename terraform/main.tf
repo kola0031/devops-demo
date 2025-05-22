@@ -55,6 +55,7 @@ module "ecs" {
   env_name              = var.env_name
   container_name        = "devops-web"
   alb_security_group_id = module.alb.alb_security_group_id
+  target_group_arn      = module.alb.target_group_arn
 }
 
 # Database Infrastructure
